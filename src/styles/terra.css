@@ -1,0 +1,176 @@
+/* ─── TERRA DESIGN SYSTEM ──────────────────────────── */
+:root {
+  --void:     #060a05;
+  --deep:     #0b1209;
+  --earth:    #111a0e;
+  --bark:     #1e2d18;
+  --moss:     #2d4625;
+  --fern:     #3d6030;
+
+  --glow:     #4eff7c;
+  --glow2:    #2de050;
+  --glow3:    #1ab03a;
+  --glow-dim: #0a5a1e;
+
+  --terra:    #e05c1a;
+  --terra2:   #f57c3a;
+  --amber:    #d4a020;
+
+  --text:     #c5dab5;
+  --text2:    #7a9e68;
+  --text3:    #3d5c30;
+
+  --rule:     rgba(74,140,50,0.15);
+  --rule2:    rgba(74,140,50,0.08);
+
+  --mono: 'DM Mono', monospace;
+  --display: 'Bebas Neue', sans-serif;
+  --body: 'Bricolage Grotesque', sans-serif;
+  --thai: 'Noto Sans Thai', sans-serif;
+
+  --nav-h: 56px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--thai);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* GRAIN TEXTURE OVERLAY */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.028;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ─── TYPOGRAPHY ─── */
+.font-display  { font-family: var(--display); }
+.font-mono     { font-family: var(--mono); }
+.font-body     { font-family: var(--body); }
+.text-glow     { color: var(--glow); }
+.text-terra    { color: var(--terra); }
+.text-muted    { color: var(--text2); }
+.text-dim      { color: var(--text3); }
+
+/* ─── SECTION LAYOUT ─── */
+.section { padding: 100px 40px; }
+.container { max-width: 1080px; margin: 0 auto; }
+.sec-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--glow3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-tag::before {
+  content: '';
+  width: 20px; height: 1px;
+  background: var(--glow3);
+  flex-shrink: 0;
+}
+.sec-title {
+  font-family: var(--display);
+  font-size: clamp(36px, 5vw, 60px);
+  color: var(--text);
+  letter-spacing: 0.03em;
+  line-height: 0.95;
+}
+.sec-desc {
+  margin-top: 14px;
+  font-size: 15px;
+  color: var(--text2);
+  max-width: 540px;
+  line-height: 1.8;
+}
+
+/* ─── BUTTONS ─── */
+.btn-primary {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--void);
+  background: var(--glow);
+  padding: 13px 28px;
+  text-decoration: none;
+  border: 1px solid var(--glow);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.btn-primary:hover { background: var(--glow2); }
+
+.btn-ghost {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text2);
+  background: transparent;
+  padding: 13px 28px;
+  text-decoration: none;
+  border: 1px solid var(--rule2);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--glow-dim); color: var(--glow); }
+
+/* ─── TAGS / CHIPS ─── */
+.chip {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 3px 9px;
+  background: var(--earth);
+  border: 1px solid var(--rule);
+  color: var(--text3);
+  letter-spacing: 0.05em;
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.4); }
+}
+@keyframes scanline {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(100vh); }
+}
+@keyframes data-flow {
+  0%   { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.6s ease both;
+}
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+
+/* ─── PAGE TRANSITIONS ─── */
+.page-enter {
+  animation: fadeUp 0.4s ease both;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--void); }
+::-webkit-scrollbar-thumb { background: var(--glow-dim); }
+::-webkit-scrollbar-thumb:hover { background: var(--glow3); }

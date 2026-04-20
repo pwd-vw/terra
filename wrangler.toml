@@ -1,0 +1,25 @@
+name = "terra"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "dist"
+
+# ─── Environments ────────────────────────────────────────────
+[env.staging]
+name = "terra-staging"
+
+[env.production]
+name = "terra"
+
+# ─── Build settings ──────────────────────────────────────────
+# Cloudflare Pages auto-detects Vite — no custom build command needed
+# For manual: build command = "npm run build", output dir = "dist"
+
+# ─── Variables (non-secret) ──────────────────────────────────
+[vars]
+TERRA_VERSION   = "0.1.0"
+TERRA_SUBDOMAIN = "terra.bs4u-tech.com"
+TERRA_ENV       = "production"
+
+# ─── Secrets (set via wrangler secret put) ───────────────────
+# TERRA_API_KEY     — used for dashboard auth
+# CF_ACCESS_TOKEN   — Cloudflare Access service token
+# LINE_NOTIFY_TOKEN — for newsletter signups

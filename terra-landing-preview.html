@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TERRA — Telemetry Environment Research Real-time Analytics | bs4u-tech.com</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Noto+Sans+Thai:wght@300;400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,600;12..96,700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────
+   TERRA DESIGN SYSTEM
+───────────────────────────────────────── */
+:root {
+  --void:    #060a05;
+  --deep:    #0b1209;
+  --earth:   #111a0e;
+  --bark:    #1e2d18;
+  --moss:    #2d4625;
+  --fern:    #3d6030;
+  --sage:    #5a8048;
+
+  --glow:    #4eff7c;
+  --glow2:   #2de050;
+  --glow3:   #1ab03a;
+  --glow-dim:#0a5a1e;
+
+  --terra:   #e05c1a;
+  --terra2:  #f57c3a;
+  --amber:   #d4a020;
+
+  --text:    #c5dab5;
+  --text2:   #7a9e68;
+  --text3:   #3d5c30;
+  --rule:    rgba(74,140,50,0.15);
+  --rule2:   rgba(74,140,50,0.08);
+
+  --mono: 'DM Mono', monospace;
+  --display: 'Bebas Neue', sans-serif;
+  --body: 'Bricolage Grotesque', sans-serif;
+  --thai: 'Noto Sans Thai', sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--thai);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* GRAIN TEXTURE */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.028;
+  pointer-events: none; z-index: 9999;
+}
+
+/* GLOBAL ANIMATIONS */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(30px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes pulse-dot {
+  0%,100% { opacity:0.3; transform:scale(1); }
+  50%      { opacity:1; transform:scale(1.4); }
+}
+@keyframes data-flow {
+  0%   { stroke-dashoffset: 1000; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes scanline {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(100vh); }
+}
+@keyframes blink {
+  0%,100% { opacity:1; } 50% { opacity:0; }
+}
+@keyframes counter-up {
+  from { opacity:0; transform:translateY(10px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(120px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+}
+@keyframes glow-pulse {
+  0%,100% { filter: drop-shadow(0 0 4px rgba(78,255,124,0.3)); }
+  50% { filter: drop-shadow(0 0 12px rgba(78,255,124,0.7)); }
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top:0; left:0; right:0;
+  z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px;
+  height: 56px;
+  background: rgba(6,10,5,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rule);
+}
+.nav-logo {
+  display: flex; align-items: baseline; gap: 6px;
+  text-decoration: none;
+}
+.nav-logo-word {
+  font-family: var(--display);
+  font-size: 26px;
+  color: var(--glow);
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+.nav-logo-sup {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+}
+.nav-links {
+  display: flex; gap: 4px; list-style: none;
+}
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text2);
+  text-decoration: none;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.nav-links a:hover {
+  color: var(--glow);
+  border-color: var(--glow-dim);
+  background: rgba(78,255,124,0.05);
+}
+.nav-links a.active {
+  color: var(--glow);
+  border-color: var(--glow-dim);
+}
+.nav-cta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--void);
+  background: var(--glow);
+  padding: 7px 16px;
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  transition: all 0.2s;
+}
+.nav-cta:hover { background: var(--glow2); }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 120px 40px 80px;
+}
+
+/* Topographic SVG Background */
+.hero-topo {
+  position: absolute; inset: 0;
+  z-index: 0;
+}
+
+.hero-scanline {
+  position: absolute; top:0; left:0; right:0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(78,255,124,0.15), transparent);
+  animation: scanline 8s linear infinite;
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  max-width: 1080px; margin: 0 auto; width: 100%;
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  color: var(--glow);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+  animation: fadeUp 0.6s ease both;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 32px; height: 1px;
+  background: var(--glow);
+  display: inline-block;
+}
+
+.hero-wordmark {
+  font-family: var(--display);
+  font-size: clamp(80px, 14vw, 180px);
+  line-height: 0.85;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin-bottom: 8px;
+  animation: fadeUp 0.6s 0.1s ease both;
+  position: relative;
+}
+.hero-wordmark .terra-glow {
+  color: var(--glow);
+  text-shadow: 0 0 60px rgba(78,255,124,0.25);
+}
+
+/* Letter breakdown strip */
+.letter-strip {
+  display: flex; gap: 0;
+  margin-bottom: 32px;
+  animation: fadeUp 0.6s 0.2s ease both;
+  overflow-x: auto;
+}
+.letter-cell {
+  flex: 1; min-width: 120px;
+  border: 1px solid var(--rule);
+  border-right: none;
+  padding: 10px 14px;
+  background: rgba(17,26,14,0.6);
+}
+.letter-cell:last-child { border-right: 1px solid var(--rule); }
+.letter-cell .lc-letter {
+  font-family: var(--display);
+  font-size: 28px;
+  color: var(--glow);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.letter-cell .lc-word {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero-sub {
+  max-width: 520px;
+  font-size: 16px;
+  color: var(--text2);
+  margin-bottom: 40px;
+  line-height: 1.8;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+
+.hero-actions {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.4s ease both;
+}
+.btn-primary {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--void);
+  background: var(--glow);
+  padding: 13px 28px;
+  text-decoration: none;
+  border: 1px solid var(--glow);
+  transition: all 0.2s;
+  display: inline-block;
+}
+.btn-primary:hover { background: var(--glow2); }
+.btn-ghost {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text2);
+  background: transparent;
+  padding: 13px 28px;
+  text-decoration: none;
+  border: 1px solid var(--rule2);
+  transition: all 0.2s;
+}
+.btn-ghost:hover { border-color: var(--glow-dim); color: var(--glow); }
+
+/* Hero Stats Row */
+.hero-stats {
+  position: absolute; bottom: 40px; left: 40px; right: 40px;
+  display: flex; gap: 0;
+  border-top: 1px solid var(--rule);
+  padding-top: 20px;
+  z-index: 2;
+  animation: fadeUp 0.6s 0.5s ease both;
+}
+.stat-item {
+  flex: 1;
+  padding: 0 20px 0 0;
+  border-right: 1px solid var(--rule);
+}
+.stat-item:first-child { padding-left: 0; }
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: var(--display);
+  font-size: 32px;
+  color: var(--glow);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.stat-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+/* ─── SECTION COMMON ─── */
+section {
+  padding: 100px 40px;
+}
+.container { max-width: 1080px; margin: 0 auto; }
+.sec-header { margin-bottom: 56px; }
+.sec-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--glow3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-tag::before {
+  content: '';
+  width: 20px; height: 1px;
+  background: var(--glow3);
+  flex-shrink: 0;
+}
+h2.sec-title {
+  font-family: var(--display);
+  font-size: clamp(36px, 5vw, 60px);
+  color: var(--text);
+  letter-spacing: 0.03em;
+  line-height: 0.95;
+}
+.sec-desc {
+  margin-top: 14px;
+  font-size: 15px;
+  color: var(--text2);
+  max-width: 540px;
+  line-height: 1.8;
+}
+
+/* ─── ABOUT / FEATURES ─── */
+#about { background: var(--deep); border-top: 1px solid var(--rule2); }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+}
+@media(max-width:900px) { .features-grid { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:500px) { .features-grid { grid-template-columns: 1fr; } }
+.feature-card {
+  border: 1px solid var(--rule);
+  border-right: none;
+  padding: 28px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.25s;
+}
+.feature-card:last-child { border-right: 1px solid var(--rule); }
+.feature-card::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0; height:2px;
+  background: var(--glow);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+.feature-card:hover { background: rgba(17,26,14,0.8); }
+.feature-card:hover::before { transform: scaleX(1); }
+.fc-letter {
+  font-family: var(--display);
+  font-size: 48px;
+  color: var(--glow-dim);
+  line-height: 1;
+  margin-bottom: 8px;
+  transition: color 0.25s;
+}
+.feature-card:hover .fc-letter { color: var(--glow); }
+.fc-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--text);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.fc-desc {
+  font-size: 12px;
+  color: var(--text3);
+  line-height: 1.7;
+}
+
+/* ─── SENSOR CATALOG ─── */
+#sensors { background: var(--void); }
+.cat-tabs {
+  display: flex; gap: 0; margin-bottom: 32px;
+  border-bottom: 1px solid var(--rule);
+  overflow-x: auto;
+}
+.cat-tab {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--text3);
+  padding: 10px 18px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  background: none; border-top: none; border-left: none; border-right: none;
+}
+.cat-tab:hover { color: var(--text2); }
+.cat-tab.active { color: var(--glow); border-bottom-color: var(--glow); }
+
+.sensor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.sensor-card {
+  border: 1px solid var(--rule2);
+  padding: 16px;
+  background: var(--earth);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.sensor-card:hover {
+  border-color: var(--glow-dim);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.sensor-card::after {
+  content: '';
+  position: absolute; top:0; right:0;
+  width: 0; height: 0;
+  border-top: 12px solid var(--glow-dim);
+  border-left: 12px solid transparent;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.sensor-card:hover::after { opacity: 1; }
+.sc-model {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--terra);
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+.sc-name {
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.sc-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.sc-tag {
+  font-family: var(--mono);
+  font-size: 8px;
+  padding: 2px 6px;
+  border: 1px solid;
+  letter-spacing: 0.08em;
+}
+.sc-tag.soil  { color: var(--amber); border-color: rgba(212,160,32,0.3); }
+.sc-tag.env   { color: #4dc9ff; border-color: rgba(77,201,255,0.25); }
+.sc-tag.motion{ color: var(--terra2); border-color: rgba(245,124,58,0.3); }
+.sc-tag.board { color: var(--glow); border-color: var(--glow-dim); }
+.sc-tag.vision{ color: #c77dff; border-color: rgba(199,125,255,0.3); }
+.sc-tag.light { color: #ffd700; border-color: rgba(255,215,0,0.25); }
+.sc-dot {
+  width: 6px; height: 6px;
+  background: var(--glow);
+  border-radius: 50%;
+  position: absolute; top:12px; right:12px;
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+
+/* ─── PIPELINE ─── */
+#pipeline {
+  background: var(--deep);
+  border-top: 1px solid var(--rule2);
+  border-bottom: 1px solid var(--rule2);
+}
+.pipeline-visual {
+  background: var(--void);
+  border: 1px solid var(--rule);
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+.pipeline-visual svg { width: 100%; }
+
+/* ─── PHASES ─── */
+#phases { background: var(--void); }
+.phase-list { display: grid; grid-template-columns: 1fr; gap: 0; }
+.phase-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 24px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--rule2);
+  align-items: start;
+}
+.phase-row:last-child { border-bottom: none; }
+.phase-n {
+  font-family: var(--display);
+  font-size: 52px;
+  color: var(--bark);
+  line-height: 1;
+  text-align: right;
+  padding-top: 4px;
+  transition: color 0.2s;
+}
+.phase-row:hover .phase-n { color: var(--glow-dim); }
+.pr-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.pr-title {
+  font-family: var(--body);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+.pr-desc { font-size: 13px; color: var(--text3); margin-bottom: 12px; }
+.pr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 3px 9px;
+  background: var(--earth);
+  border: 1px solid var(--rule);
+  color: var(--text3);
+  letter-spacing: 0.05em;
+}
+
+/* ─── BLOG ─── */
+#blog { background: var(--earth); border-top: 1px solid var(--rule2); }
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media(max-width:768px) { .blog-grid { grid-template-columns: 1fr; } }
+.blog-card {
+  border: 1px solid var(--rule);
+  overflow: hidden;
+  background: var(--deep);
+  transition: transform 0.2s, border-color 0.2s;
+  text-decoration: none; display: block;
+}
+.blog-card:hover { transform: translateY(-3px); border-color: var(--glow-dim); }
+.bc-thumb {
+  height: 120px;
+  background: var(--bark);
+  position: relative;
+  overflow: hidden;
+}
+.bc-thumb-pattern {
+  position: absolute; inset: 0;
+  opacity: 0.4;
+}
+.bc-ep {
+  position: absolute; top: 10px; left: 10px;
+  font-family: var(--mono); font-size: 9px;
+  color: var(--glow); background: rgba(0,0,0,0.7);
+  padding: 3px 8px; letter-spacing: 0.15em;
+}
+.bc-body { padding: 16px; }
+.bc-cat {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--terra2); letter-spacing: 0.15em;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+.bc-title {
+  font-size: 13px; font-weight: 500;
+  color: var(--text);
+  line-height: 1.5; margin-bottom: 8px;
+}
+.bc-meta {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--text3); letter-spacing: 0.05em;
+  display: flex; justify-content: space-between;
+}
+
+/* ─── CTA ─── */
+#cta {
+  background: var(--void);
+  border-top: 1px solid var(--rule);
+  text-align: center;
+  padding: 100px 40px;
+}
+.cta-word {
+  font-family: var(--display);
+  font-size: clamp(60px, 10vw, 120px);
+  color: var(--earth);
+  letter-spacing: 0.06em;
+  line-height: 0.9;
+  margin-bottom: 40px;
+  position: relative;
+}
+.cta-word span { color: var(--glow); }
+.cta-sub {
+  font-size: 16px; color: var(--text2);
+  margin-bottom: 32px;
+  max-width: 480px; margin-left: auto; margin-right: auto;
+}
+.cta-form {
+  display: flex; gap: 0; max-width: 400px; margin: 0 auto 12px;
+}
+.cta-input {
+  flex: 1;
+  background: var(--earth);
+  border: 1px solid var(--rule);
+  border-right: none;
+  color: var(--text);
+  padding: 12px 16px;
+  font-family: var(--mono); font-size: 12px;
+  outline: none;
+}
+.cta-input::placeholder { color: var(--text3); }
+.cta-input:focus { border-color: var(--glow-dim); }
+.cta-btn {
+  background: var(--glow); color: var(--void);
+  border: 1px solid var(--glow);
+  padding: 12px 20px;
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0.1em; cursor: pointer;
+  transition: background 0.2s;
+}
+.cta-btn:hover { background: var(--glow2); }
+.cta-note {
+  font-family: var(--mono); font-size: 9px;
+  color: var(--text3); letter-spacing: 0.08em;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--deep);
+  border-top: 1px solid var(--rule);
+  padding: 60px 40px 32px;
+}
+.footer-grid {
+  max-width: 1080px; margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px; margin-bottom: 40px;
+}
+@media(max-width:768px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+.footer-brand .fb-name {
+  font-family: var(--display);
+  font-size: 36px; color: var(--glow);
+  letter-spacing: 0.08em; line-height: 1;
+  margin-bottom: 8px;
+}
+.footer-brand .fb-tagline {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text3); letter-spacing: 0.12em;
+  line-height: 1.9; margin-bottom: 16px;
+}
+.footer-brand .fb-domain {
+  font-family: var(--mono); font-size: 10px;
+  color: var(--glow3);
+}
+.footer-col h4 {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text2); margin-bottom: 12px;
+}
+.footer-col ul { list-style: none; }
+.footer-col li a {
+  font-size: 12px; color: var(--text3);
+  text-decoration: none; display: block;
+  padding: 3px 0; transition: color 0.2s;
+}
+.footer-col li a:hover { color: var(--glow); }
+.footer-bottom {
+  max-width: 1080px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--rule2); padding-top: 20px;
+  font-family: var(--mono); font-size: 9px; color: var(--text3);
+  flex-wrap: wrap; gap: 8px;
+}
+.fb-stack {
+  display: flex; gap: 6px; align-items: center;
+}
+.fb-pill {
+  padding: 2px 8px;
+  background: var(--earth); border: 1px solid var(--rule);
+  font-size: 9px; letter-spacing: 0.08em;
+  color: var(--text3);
+}
+
+/* ─── DATA PARTICLES ─── */
+.particle-canvas {
+  position: absolute; inset: 0; z-index: 1;
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="nav-logo-word">TERRA</span>
+    <span class="nav-logo-sup">terra.bs4u-tech.com</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#" class="active">HOME</a></li>
+    <li><a href="#sensors">LAB</a></li>
+    <li><a href="#pipeline">PIPELINE</a></li>
+    <li><a href="#blog">BLOG</a></li>
+    <li><a href="#about">ABOUT</a></li>
+    <li><a href="#">DASHBOARD</a></li>
+  </ul>
+  <a href="#cta" class="nav-cta">SUBSCRIBE</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <!-- Topographic Background SVG -->
+  <svg class="hero-topo" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <style>
+        .topo-line { fill:none; stroke-width:0.8; }
+      </style>
+    </defs>
+    <!-- Contour lines mimicking terrain -->
+    <path class="topo-line" stroke="rgba(74,140,50,0.08)"
+      d="M-50,350 Q150,280 350,320 T750,290 T1150,310 T1300,340"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.10)"
+      d="M-50,380 Q200,300 400,350 T800,310 T1200,330"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.07)"
+      d="M-50,420 Q100,360 300,400 Q600,440 900,380 Q1100,340 1300,380"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.09)"
+      d="M-50,460 Q150,400 350,440 T750,420 T1200,440"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.06)"
+      d="M-50,500 Q200,450 450,490 T900,480 T1300,500"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.05)"
+      d="M-50,540 Q100,500 300,530 Q600,570 900,530 Q1100,500 1300,530"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.08)"
+      d="M-50,310 Q200,250 400,290 T850,270 T1300,300"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.06)"
+      d="M-50,270 Q150,200 350,250 T750,220 T1200,260"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.05)"
+      d="M-50,580 Q200,540 450,570 T900,560 T1300,580"/>
+    <path class="topo-line" stroke="rgba(74,140,50,0.04)"
+      d="M-50,620 Q100,580 300,610 Q600,650 900,610 T1300,620"/>
+    <!-- Grid dots -->
+    <g fill="rgba(78,255,124,0.08)">
+      <circle cx="100" cy="150" r="1.5"/><circle cx="300" cy="180" r="1"/><circle cx="500" cy="140" r="1.5"/>
+      <circle cx="700" cy="160" r="1"/><circle cx="900" cy="145" r="1.5"/><circle cx="1100" cy="170" r="1"/>
+    </g>
+    <!-- Active glowing dots on contours -->
+    <circle cx="220" cy="334" r="3" fill="rgba(78,255,124,0.7)" style="animation: pulse-dot 3s ease-in-out infinite;"/>
+    <circle cx="640" cy="312" r="2.5" fill="rgba(78,255,124,0.5)" style="animation: pulse-dot 3s 1s ease-in-out infinite;"/>
+    <circle cx="980" cy="328" r="3" fill="rgba(78,255,124,0.6)" style="animation: pulse-dot 3s 2s ease-in-out infinite;"/>
+    <!-- Data flow path -->
+    <path fill="none" stroke="rgba(78,255,124,0.2)" stroke-width="1"
+      stroke-dasharray="4,6"
+      d="M100,350 L200,330 L350,345 L500,320 L680,335 L850,318 L1000,330 L1100,345"
+      style="animation: data-flow 4s linear infinite; stroke-dashoffset: 100;"/>
+  </svg>
+  <canvas class="particle-canvas" id="particles"></canvas>
+  <div class="hero-scanline"></div>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">terra.bs4u-tech.com &nbsp;·&nbsp; OPEN SENSOR PLATFORM</div>
+    <div class="hero-wordmark">
+      <span class="terra-glow">TER</span>RA
+    </div>
+
+    <!-- Letter breakdown -->
+    <div class="letter-strip">
+      <div class="letter-cell"><div class="lc-letter">T</div><div class="lc-word">Telemetry</div></div>
+      <div class="letter-cell"><div class="lc-letter">E</div><div class="lc-word">Environment</div></div>
+      <div class="letter-cell"><div class="lc-letter">R</div><div class="lc-word">Research</div></div>
+      <div class="letter-cell"><div class="lc-letter">R</div><div class="lc-word">Real-time</div></div>
+      <div class="letter-cell"><div class="lc-letter">A</div><div class="lc-word">Analytics</div></div>
+    </div>
+
+    <p class="hero-sub">แพลตฟอร์ม Open Sensor สำหรับเก็บข้อมูลสภาพดิน อากาศ และสิ่งแวดล้อม — ตั้งแต่ทดลอง tutorial ไปจนถึง ML pipeline เพื่อการเกษตร วิจัย และอุตสาหกรรม</p>
+    <div class="hero-actions">
+      <a href="#sensors" class="btn-primary">EXPLORE LAB →</a>
+      <a href="#pipeline" class="btn-ghost">VIEW PIPELINE</a>
+      <a href="https://github.com/bs4u-tech/terra" class="btn-ghost">GITHUB</a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">18</div>
+      <div class="stat-label">Sensor Models</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">4</div>
+      <div class="stat-label">Board Types</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">18</div>
+      <div class="stat-label">Tutorial Episodes</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">4</div>
+      <div class="stat-label">Phases</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" style="font-size:20px;padding-top:6px">LIVE</div>
+      <div class="stat-label">Data Dashboard</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT / FEATURES -->
+<section id="about">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">ABOUT TERRA</div>
+      <h2 class="sec-title">FIVE DIMENSIONS<br>ONE PLATFORM</h2>
+      <p class="sec-desc">ทุกตัวอักษรใน TERRA คือเสาหลักของ ecosystem — ตั้งแต่การเก็บข้อมูลสนามถึง AI prediction</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="fc-letter">T</div>
+        <div class="fc-title">Telemetry</div>
+        <div class="fc-desc">ESP32 nodes ส่งข้อมูล sensor ผ่าน MQTT ทุก 5 นาที ด้วย QoS แบบ guaranteed delivery</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-letter">E</div>
+        <div class="fc-title">Environment</div>
+        <div class="fc-desc">วัดดิน, อากาศ, ความชื้น, แสง, ความดัน ครอบคลุมสภาพแวดล้อมทั้งหมด</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-letter">R</div>
+        <div class="fc-title">Research</div>
+        <div class="fc-desc">Open dataset และ Jupyter Notebook สำหรับงานวิชาการ — ใช้ได้ทันที</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-letter">R</div>
+        <div class="fc-title">Real-time</div>
+        <div class="fc-desc">Dashboard live update, WebSocket, TimescaleDB hypertable สำหรับ time-series ความเร็วสูง</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-letter">A</div>
+        <div class="fc-title">Analytics</div>
+        <div class="fc-desc">Python ML pipeline, TFLite inference บน RPi5, predictive irrigation และ anomaly detection</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SENSOR LAB -->
+<section id="sensors">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">SENSOR LAB</div>
+      <h2 class="sec-title">HARDWARE CATALOG</h2>
+      <p class="sec-desc">เซ็นเซอร์ทุกตัวมี tutorial, wiring diagram, code สำหรับ RPi5 และ ESP32 พร้อมเชื่อม TERRA pipeline</p>
+    </div>
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="filterSensors('all',this)">ALL (18)</button>
+      <button class="cat-tab" onclick="filterSensors('soil',this)">🌱 SOIL (4)</button>
+      <button class="cat-tab" onclick="filterSensors('env',this)">🌡️ ENVIRONMENT (3)</button>
+      <button class="cat-tab" onclick="filterSensors('motion',this)">⚡ MOTION (4)</button>
+      <button class="cat-tab" onclick="filterSensors('light',this)">💡 OPTICAL (3)</button>
+      <button class="cat-tab" onclick="filterSensors('board',this)">🔌 BOARDS (2)</button>
+      <button class="cat-tab" onclick="filterSensors('vision',this)">📷 VISION AI (2)</button>
+    </div>
+    <div class="sensor-grid" id="sensorGrid">
+      <!-- Soil -->
+      <div class="sensor-card" data-cat="soil"><div class="sc-dot"></div><div class="sc-model">KS0049</div><div class="sc-name">Soil Humidity Sensor (Resistive)</div><div class="sc-tags"><span class="sc-tag soil">SOIL</span><span class="sc-tag">ANALOG</span><span class="sc-tag">EP06</span></div></div>
+      <div class="sensor-card" data-cat="soil"><div class="sc-dot"></div><div class="sc-model">KS0108</div><div class="sc-name">EASY Plug Soil Humidity</div><div class="sc-tags"><span class="sc-tag soil">SOIL</span><span class="sc-tag">EASY PLUG</span><span class="sc-tag">EP06</span></div></div>
+      <div class="sensor-card" data-cat="soil"><div class="sc-dot"></div><div class="sc-model">KS0471</div><div class="sc-name">Microbit Honeycomb Soil Sensor</div><div class="sc-tags"><span class="sc-tag soil">SOIL</span><span class="sc-tag">I2C</span><span class="sc-tag">EP13</span></div></div>
+      <div class="sensor-card" data-cat="soil"><div class="sc-dot"></div><div class="sc-model">KS0510</div><div class="sc-name">New Type Soil Humidity (Capacitive)</div><div class="sc-tags"><span class="sc-tag soil">SOIL ★</span><span class="sc-tag">CAPACITIVE</span><span class="sc-tag">EP14</span></div></div>
+      <!-- Environment -->
+      <div class="sensor-card" data-cat="env"><div class="sc-dot" style="background:var(--amber)"></div><div class="sc-model">KS0034</div><div class="sc-name">DHT11 Temp & Humidity</div><div class="sc-tags"><span class="sc-tag env">ENV</span><span class="sc-tag">1-WIRE</span><span class="sc-tag">EP05</span></div></div>
+      <div class="sensor-card" data-cat="env"><div class="sc-dot" style="background:var(--amber)"></div><div class="sc-model">KS0430</div><div class="sc-name">DHT22 / AM2302 Temp & Humidity</div><div class="sc-tags"><span class="sc-tag env">ENV ★</span><span class="sc-tag">±0.5°C</span><span class="sc-tag">EP07</span></div></div>
+      <div class="sensor-card" data-cat="env"><div class="sc-dot" style="background:var(--amber)"></div><div class="sc-model">KS0405</div><div class="sc-name">BMP280 Temp & Air Pressure</div><div class="sc-tags"><span class="sc-tag env">ENV</span><span class="sc-tag">I2C/SPI</span><span class="sc-tag">EP08</span></div></div>
+      <!-- Motion -->
+      <div class="sensor-card" data-cat="motion"><div class="sc-dot" style="background:var(--terra2)"></div><div class="sc-model">KS0021</div><div class="sc-name">Collision Sensor Module</div><div class="sc-tags"><span class="sc-tag motion">MOTION</span><span class="sc-tag">DIGITAL</span><span class="sc-tag">EP02</span></div></div>
+      <div class="sensor-card" data-cat="motion"><div class="sc-dot" style="background:var(--terra2)"></div><div class="sc-model">KS0025</div><div class="sc-name">Digital Tilt Sensor</div><div class="sc-tags"><span class="sc-tag motion">MOTION</span><span class="sc-tag">DIGITAL</span><span class="sc-tag">EP03</span></div></div>
+      <div class="sensor-card" data-cat="motion"><div class="sc-dot" style="background:var(--terra2)"></div><div class="sc-model">KS0375</div><div class="sc-name">SR01 Ultrasonic Sensor</div><div class="sc-tags"><span class="sc-tag motion">MOTION</span><span class="sc-tag">DISTANCE</span><span class="sc-tag">EP09</span></div></div>
+      <div class="sensor-card" data-cat="motion"><div class="sc-dot" style="background:var(--terra2)"></div><div class="sc-model">KS6044</div><div class="sc-name">Vibration Motor Module</div><div class="sc-tags"><span class="sc-tag motion">ACTUATOR</span><span class="sc-tag">EP04</span></div></div>
+      <!-- Optical -->
+      <div class="sensor-card" data-cat="light"><div class="sc-dot" style="background:#ffd700"></div><div class="sc-model">KS6008</div><div class="sc-name">LED Traffic Light Module</div><div class="sc-tags"><span class="sc-tag light">OPTICAL</span><span class="sc-tag">OUTPUT</span><span class="sc-tag">EP04</span></div></div>
+      <div class="sensor-card" data-cat="light"><div class="sc-dot" style="background:#ffd700"></div><div class="sc-model">KS6036</div><div class="sc-name">IR Receiver Module (STEM)</div><div class="sc-tags"><span class="sc-tag light">IR</span><span class="sc-tag">38kHz</span><span class="sc-tag">EP10</span></div></div>
+      <div class="sensor-card" data-cat="light"><div class="sc-dot" style="background:#ffd700"></div><div class="sc-model">KS6037</div><div class="sc-name">IR Transmitter Sensor</div><div class="sc-tags"><span class="sc-tag light">IR</span><span class="sc-tag">TX</span><span class="sc-tag">EP10</span></div></div>
+      <!-- Boards -->
+      <div class="sensor-card" data-cat="board"><div class="sc-dot"></div><div class="sc-model">KS0413</div><div class="sc-name">ESP32 WROOM-32D Module</div><div class="sc-tags"><span class="sc-tag board">BOARD</span><span class="sc-tag">WiFi+BT</span><span class="sc-tag">NODE</span></div></div>
+      <div class="sensor-card" data-cat="board"><div class="sc-dot"></div><div class="sc-model">KS5019</div><div class="sc-name">ESP32 Mini Dev Board</div><div class="sc-tags"><span class="sc-tag board">BOARD</span><span class="sc-tag">COMPACT</span><span class="sc-tag">PROTO</span></div></div>
+      <!-- Vision AI -->
+      <div class="sensor-card" data-cat="vision"><div class="sc-dot" style="background:#c77dff"></div><div class="sc-model">MB0184</div><div class="sc-name">ESP32-S3 CAM N16R8</div><div class="sc-tags"><span class="sc-tag vision">VISION</span><span class="sc-tag">8MB PSRAM</span><span class="sc-tag">EP17</span></div></div>
+      <div class="sensor-card" data-cat="vision"><div class="sc-dot" style="background:#c77dff"></div><div class="sc-model">MD0750</div><div class="sc-name">ESP32-S3 AI Smartie N16R8</div><div class="sc-tags"><span class="sc-tag vision">AI ★</span><span class="sc-tag">TFLite</span><span class="sc-tag">EP18</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">DATA PIPELINE</div>
+      <h2 class="sec-title">FROM DIRT<br>TO DASHBOARD</h2>
+      <p class="sec-desc">ข้อมูลเดินทางจาก sensor ในดิน ผ่าน ESP32, MQTT, Raspberry Pi 5, Cloudflare และแสดงผลบน terra.bs4u-tech.com</p>
+    </div>
+    <div class="pipeline-visual">
+      <svg viewBox="0 0 960 200" xmlns="http://www.w3.org/2000/svg" font-family="'DM Mono', monospace">
+        <defs>
+          <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="rgba(78,255,124,0.5)"/>
+          </marker>
+          <marker id="arr2" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="rgba(78,255,124,0.3)"/>
+          </marker>
+        </defs>
+
+        <!-- Node boxes -->
+        <!-- Sensor -->
+        <rect x="10" y="70" width="110" height="60" fill="#111a0e" stroke="rgba(74,140,50,0.4)" stroke-width="1"/>
+        <text x="65" y="95" text-anchor="middle" fill="#4eff7c" font-size="10" font-weight="500">SENSOR</text>
+        <text x="65" y="110" text-anchor="middle" fill="rgba(78,255,124,0.4)" font-size="8">ESP32 NODE</text>
+        <text x="65" y="122" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">Soil · Air · Motion</text>
+        <circle cx="120" cy="100" r="3" fill="rgba(78,255,124,0.8)" style="animation:pulse-dot 2s infinite"/>
+
+        <!-- Arrow 1 -->
+        <line x1="124" y1="100" x2="170" y2="100" stroke="rgba(78,255,124,0.4)" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="3,3"/>
+        <text x="147" y="93" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">MQTT</text>
+
+        <!-- MQTT Broker -->
+        <rect x="174" y="70" width="110" height="60" fill="#111a0e" stroke="rgba(74,140,50,0.4)" stroke-width="1"/>
+        <text x="229" y="95" text-anchor="middle" fill="#4eff7c" font-size="10">BROKER</text>
+        <text x="229" y="110" text-anchor="middle" fill="rgba(78,255,124,0.4)" font-size="8">Mosquitto</text>
+        <text x="229" y="122" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">QoS 1/2</text>
+
+        <!-- Arrow 2 -->
+        <line x1="288" y1="100" x2="334" y2="100" stroke="rgba(78,255,124,0.4)" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="3,3"/>
+        <text x="311" y="93" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">SUB</text>
+
+        <!-- Node-RED -->
+        <rect x="338" y="70" width="110" height="60" fill="#111a0e" stroke="rgba(74,140,50,0.4)" stroke-width="1"/>
+        <text x="393" y="95" text-anchor="middle" fill="#4eff7c" font-size="10">NODE-RED</text>
+        <text x="393" y="110" text-anchor="middle" fill="rgba(78,255,124,0.4)" font-size="8">RPi 5 — 8GB</text>
+        <text x="393" y="122" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">Rules · Logic · DB</text>
+
+        <!-- Arrow 3 -->
+        <line x1="452" y1="100" x2="498" y2="100" stroke="rgba(78,255,124,0.4)" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="3,3"/>
+        <text x="475" y="93" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">HTTPS</text>
+
+        <!-- TimescaleDB -->
+        <rect x="502" y="70" width="110" height="60" fill="#111a0e" stroke="rgba(74,140,50,0.4)" stroke-width="1"/>
+        <text x="557" y="95" text-anchor="middle" fill="#4eff7c" font-size="10">DATABASE</text>
+        <text x="557" y="110" text-anchor="middle" fill="rgba(78,255,124,0.4)" font-size="8">TimescaleDB</text>
+        <text x="557" y="122" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">Time-series · ML</text>
+
+        <!-- Arrow 4 -->
+        <line x1="616" y1="100" x2="662" y2="100" stroke="rgba(78,255,124,0.4)" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="3,3"/>
+        <text x="639" y="93" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">TUNNEL</text>
+
+        <!-- CF Workers -->
+        <rect x="666" y="70" width="110" height="60" fill="#111a0e" stroke="rgba(74,140,50,0.4)" stroke-width="1"/>
+        <text x="721" y="95" text-anchor="middle" fill="#4eff7c" font-size="10">CLOUDFLARE</text>
+        <text x="721" y="110" text-anchor="middle" fill="rgba(78,255,124,0.4)" font-size="8">Workers + D1</text>
+        <text x="721" y="122" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">API · Storage · Auth</text>
+
+        <!-- Arrow 5 -->
+        <line x1="780" y1="100" x2="826" y2="100" stroke="rgba(78,255,124,0.4)" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="3,3"/>
+        <text x="803" y="93" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">RENDER</text>
+
+        <!-- Dashboard -->
+        <rect x="830" y="70" width="116" height="60" fill="rgba(17,26,14,0.9)" stroke="rgba(78,255,124,0.7)" stroke-width="1.5"/>
+        <text x="888" y="95" text-anchor="middle" fill="#4eff7c" font-size="10" font-weight="600">DASHBOARD</text>
+        <text x="888" y="110" text-anchor="middle" fill="rgba(78,255,124,0.5)" font-size="8">CF Pages · React</text>
+        <text x="888" y="122" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-size="7">terra.bs4u-tech.com</text>
+
+        <!-- Ground line with nodes indicator -->
+        <line x1="10" y1="160" x2="946" y2="160" stroke="rgba(74,140,50,0.08)" stroke-width="1"/>
+        <text x="65" y="175" text-anchor="middle" fill="rgba(78,255,124,0.2)" font-size="7">×3 NODES</text>
+        <text x="393" y="175" text-anchor="middle" fill="rgba(78,255,124,0.2)" font-size="7">LOCAL HUB</text>
+        <text x="721" y="175" text-anchor="middle" fill="rgba(78,255,124,0.2)" font-size="7">EDGE NETWORK</text>
+
+        <!-- Animated data dot -->
+        <circle r="3" fill="rgba(78,255,124,0.9)" style="animation:glow-pulse 2s infinite">
+          <animateMotion dur="4s" repeatCount="indefinite"
+            path="M65,100 L229,100 L393,100 L557,100 L721,100 L888,100"/>
+        </circle>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- PHASES -->
+<section id="phases">
+  <div class="container">
+    <div class="sec-header">
+      <div class="sec-tag">DEVELOPMENT PHASES</div>
+      <h2 class="sec-title">ROADMAP</h2>
+    </div>
+    <div class="phase-list">
+      <div class="phase-row">
+        <div class="phase-n">0</div>
+        <div>
+          <div class="pr-tag">PHASE 0 · เดือน 1–2 · NOW</div>
+          <div class="pr-title">Foundation Lab — Digital Sensors & GPIO Basics</div>
+          <div class="pr-desc">เริ่มต้น TERRA: tutorial sensor พื้นฐาน, RPi5 + ESP32 setup, blog series แรก, GitHub repo launch</div>
+          <div class="pr-chips">
+            <span class="chip">Collision</span><span class="chip">Tilt</span><span class="chip">Traffic LED</span>
+            <span class="chip">DHT11</span><span class="chip">Soil Resistive</span><span class="chip">EP01–06</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-n">1</div>
+        <div>
+          <div class="pr-tag">PHASE 1 · เดือน 3–4</div>
+          <div class="pr-title">Protocols & Precision — I2C, SPI, MQTT Pipeline</div>
+          <div class="pr-desc">DHT22 upgrade, BMP280 I2C, ultrasonic water level, IR communication, TERRA pipeline ครั้งแรก</div>
+          <div class="pr-chips">
+            <span class="chip">DHT22</span><span class="chip">BMP280</span><span class="chip">Ultrasonic</span>
+            <span class="chip">IR Pair</span><span class="chip">Node-RED</span><span class="chip">EP07–11</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-n">2</div>
+        <div>
+          <div class="pr-tag">PHASE 2 · เดือน 5–6</div>
+          <div class="pr-title">Soil Intelligence — 4-Sensor Comparison in the Field</div>
+          <div class="pr-desc">Flagship series: soil sensor ทั้ง 4 รุ่น ลงดินจริง 7 วัน, Python analysis, open dataset สาธารณะ</div>
+          <div class="pr-chips">
+            <span class="chip">4× Soil Sensors</span><span class="chip">TimescaleDB</span><span class="chip">Grafana</span>
+            <span class="chip">Jupyter Notebook</span><span class="chip">EP12–16</span>
+          </div>
+        </div>
+      </div>
+      <div class="phase-row">
+        <div class="phase-n">3</div>
+        <div>
+          <div class="pr-tag">PHASE 3 · เดือน 7–8</div>
+          <div class="pr-title">Vision & Edge AI — ESP32-S3 Camera + TFLite</div>
+          <div class="pr-desc">Time-lapse ต้นลำไย, on-device disease detection, TERRA AI preview สู่ Phase ML เต็มรูปแบบ</div>
+          <div class="pr-chips">
+            <span class="chip">ESP32-S3 CAM</span><span class="chip">TFLite</span><span class="chip">YOLOv8n</span>
+            <span class="chip">Edge Impulse</span><span class="chip">EP17–18</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BLOG -->
+<section id="blog">
+  <div class="container">
+    <div class="sec-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div class="sec-tag">TERRA BLOG</div>
+        <h2 class="sec-title">LATEST ARTICLES</h2>
+      </div>
+      <a href="/blog" class="btn-ghost" style="font-size:10px;">VIEW ALL POSTS →</a>
+    </div>
+    <div class="blog-grid">
+      <a href="/blog/terra-ep01" class="blog-card">
+        <div class="bc-thumb">
+          <svg class="bc-thumb-pattern" viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice">
+            <path fill="none" stroke="rgba(78,255,124,0.15)" stroke-width="1"
+              d="M0,60 Q75,40 150,60 T300,60"/>
+            <path fill="none" stroke="rgba(78,255,124,0.1)" stroke-width="1"
+              d="M0,75 Q75,55 150,75 T300,75"/>
+            <circle cx="60" cy="60" r="4" fill="rgba(78,255,124,0.4)"/>
+            <circle cx="160" cy="55" r="3" fill="rgba(78,255,124,0.3)"/>
+            <circle cx="250" cy="65" r="4" fill="rgba(78,255,124,0.4)"/>
+          </svg>
+          <div class="bc-ep">EP01</div>
+        </div>
+        <div class="bc-body">
+          <div class="bc-cat">GETTING STARTED</div>
+          <div class="bc-title">Raspberry Pi 5 vs ESP32 ต่างกันอย่างไร? เลือกบอร์ดไหนสำหรับงาน IoT</div>
+          <div class="bc-meta"><span>TERRA Lab</span><span>8 min read</span></div>
+        </div>
+      </a>
+      <a href="/blog/terra-ep07" class="blog-card">
+        <div class="bc-thumb">
+          <svg class="bc-thumb-pattern" viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice">
+            <rect x="40" y="30" width="30" height="60" fill="rgba(78,255,124,0.12)"/>
+            <rect x="90" y="20" width="30" height="70" fill="rgba(212,160,32,0.12)"/>
+            <rect x="140" y="40" width="30" height="50" fill="rgba(78,255,124,0.08)"/>
+            <line x1="0" y1="90" x2="300" y2="90" stroke="rgba(74,140,50,0.2)" stroke-width="0.5"/>
+          </svg>
+          <div class="bc-ep">EP07</div>
+        </div>
+        <div class="bc-body">
+          <div class="bc-cat">COMPARISON ★</div>
+          <div class="bc-title">DHT11 vs DHT22 — ทดสอบ Accuracy 24 ชั่วโมงด้วย Grafana Dashboard</div>
+          <div class="bc-meta"><span>TERRA Lab</span><span>12 min read</span></div>
+        </div>
+      </a>
+      <a href="/blog/terra-ep12" class="blog-card">
+        <div class="bc-thumb">
+          <svg class="bc-thumb-pattern" viewBox="0 0 300 120" preserveAspectRatio="xMidYMid slice">
+            <circle cx="75" cy="60" r="25" fill="none" stroke="rgba(78,255,124,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+            <circle cx="150" cy="60" r="25" fill="none" stroke="rgba(212,160,32,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+            <circle cx="225" cy="60" r="25" fill="none" stroke="rgba(224,92,26,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+            <text x="150" y="110" text-anchor="middle" fill="rgba(78,255,124,0.3)" font-family="monospace" font-size="7">SOIL SHOWDOWN</text>
+          </svg>
+          <div class="bc-ep">EP12–15</div>
+        </div>
+        <div class="bc-body">
+          <div class="bc-cat">SOIL SHOWDOWN ★★</div>
+          <div class="bc-title">4 Soil Sensors ลงดินจริง 7 วัน — ตัวไหนชนะ? [Series]</div>
+          <div class="bc-meta"><span>TERRA Lab</span><span>4-part series</span></div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="container" style="max-width:600px;">
+    <div class="cta-word">JOIN<br><span>TERRA</span></div>
+    <p class="cta-sub">รับข่าวสาร episode ใหม่, dataset, และ code สาธารณะก่อนใคร — ฟรีทั้งหมด</p>
+    <div class="cta-form">
+      <input class="cta-input" type="email" placeholder="your@email.com">
+      <button class="cta-btn">SUBSCRIBE</button>
+    </div>
+    <div class="cta-note">NO SPAM · UNSUBSCRIBE ANYTIME · OPEN SOURCE ALWAYS</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="fb-name">TERRA</div>
+      <div class="fb-tagline">
+        T — Telemetry<br>E — Environment<br>
+        R — Research<br>R — Real-time<br>A — Analytics
+      </div>
+      <div class="fb-domain">terra.bs4u-tech.com</div>
+    </div>
+    <div class="footer-col">
+      <h4>Platform</h4>
+      <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/lab">Sensor Lab</a></li>
+        <li><a href="/data">Open Data</a></li>
+        <li><a href="/pipeline">Pipeline</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Content</h4>
+      <ul>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/tutorials">Tutorials</a></li>
+        <li><a href="/videos">Video Series</a></li>
+        <li><a href="/notebooks">Notebooks</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Project</h4>
+      <ul>
+        <li><a href="/about">About TERRA</a></li>
+        <li><a href="https://github.com/bs4u-tech/terra">GitHub</a></li>
+        <li><a href="https://bs4u-tech.com">bs4u-tech.com</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024–2025 bs4u-tech.com · TERRA Platform</span>
+    <div class="fb-stack">
+      <span class="fb-pill">Cloudflare Pages</span>
+      <span class="fb-pill">React + Vite</span>
+      <span class="fb-pill">TypeScript</span>
+      <span class="fb-pill">Open Source</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Sensor filter
+function filterSensors(cat, btn) {
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.sensor-card').forEach(card => {
+    if (cat === 'all' || card.dataset.cat === cat) {
+      card.style.display = '';
+      card.style.animation = 'fadeUp 0.3s ease both';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// Particle system (subtle data dots in hero)
+(function() {
+  const canvas = document.getElementById('particles');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  function resize() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+  const particles = Array.from({length: 40}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: -Math.random() * 0.4 - 0.1,
+    life: Math.random(),
+    size: Math.random() * 1.5 + 0.5
+  }));
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.life -= 0.002;
+      if (p.life <= 0 || p.y < 0) {
+        p.x = Math.random() * canvas.width;
+        p.y = canvas.height;
+        p.life = 0.6 + Math.random() * 0.4;
+        p.vy = -Math.random() * 0.4 - 0.1;
+      }
+      ctx.globalAlpha = p.life * 0.4;
+      ctx.fillStyle = '#4eff7c';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// Nav active state on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  const y = window.scrollY + 80;
+  sections.forEach(sec => {
+    if (y >= sec.offsetTop && y < sec.offsetTop + sec.offsetHeight) {
+      navLinks.forEach(a => a.classList.remove('active'));
+      const active = document.querySelector(`.nav-links a[href="#${sec.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+});
+</script>
+</body>
+</html>
