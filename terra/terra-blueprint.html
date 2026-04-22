@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Longan Farm — System Architecture Blueprint</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080f0a;
+    --bg2: #0d1a10;
+    --bg3: #111f14;
+    --panel: #0f1c12;
+    --border: #1e3322;
+    --border2: #2a4a32;
+    --green: #2dff72;
+    --green2: #1adc58;
+    --green-dim: #0f6e2e;
+    --green-glow: rgba(45,255,114,0.12);
+    --amber: #ffa500;
+    --amber-dim: rgba(255,165,0,0.15);
+    --blue: #4dc9ff;
+    --blue-dim: rgba(77,201,255,0.12);
+    --red: #ff4d6d;
+    --purple: #c77dff;
+    --text: #c8e6cc;
+    --text-dim: #5a8060;
+    --text-muted: #3a5540;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'IBM Plex Sans Thai', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID NOISE BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(45,255,114,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45,255,114,0.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border2);
+    padding: 48px 0 36px;
+    margin-bottom: 48px;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0;
+    width: 220px; height: 2px;
+    background: var(--green);
+    box-shadow: 0 0 16px var(--green);
+  }
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--green);
+    background: var(--green-glow);
+    border: 1px solid var(--green-dim);
+    padding: 4px 12px;
+    display: inline-block;
+    margin-bottom: 16px;
+    border-radius: 2px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  h1 span { color: var(--green); }
+  .meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex; gap: 24px; flex-wrap: wrap;
+  }
+  .meta span::before { content: '// '; color: var(--green-dim); }
+
+  /* ── SECTION TITLES ── */
+  .section { margin-bottom: 56px; }
+  .sec-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .sec-label::before { content: '▶ '; }
+  h2 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 10px;
+  }
+
+  /* ── ARCH DIAGRAM ── */
+  .arch-diagram {
+    background: var(--panel);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .arch-diagram svg { width: 100%; display: block; }
+
+  /* ── LAYER CARDS ── */
+  .layers { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  .layer {
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .layer-header {
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .layer-header .num {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .layer-body { padding: 14px 16px; background: var(--bg2); }
+
+  .l1 .layer-header { background: rgba(45,255,114,0.08); color: var(--green); border-bottom: 1px solid rgba(45,255,114,0.2); }
+  .l1 .num { background: var(--green); color: #000; }
+  .l2 .layer-header { background: rgba(77,201,255,0.08); color: var(--blue); border-bottom: 1px solid rgba(77,201,255,0.2); }
+  .l2 .num { background: var(--blue); color: #000; }
+  .l3 .layer-header { background: rgba(255,165,0,0.08); color: var(--amber); border-bottom: 1px solid rgba(255,165,0,0.2); }
+  .l3 .num { background: var(--amber); color: #000; }
+  .l4 .layer-header { background: rgba(199,125,255,0.08); color: var(--purple); border-bottom: 1px solid rgba(199,125,255,0.2); }
+  .l4 .num { background: var(--purple); color: #000; }
+
+  /* ── NODE GRID ── */
+  .node-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .node-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .node-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .node-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .node-card.green::before { background: var(--green); }
+  .node-card.blue::before { background: var(--blue); }
+  .node-card.amber::before { background: var(--amber); }
+  .node-card.purple::before { background: var(--purple); }
+  .node-card.red::before { background: var(--red); }
+
+  .node-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .node-card.green .node-title { color: var(--green); }
+  .node-card.blue .node-title { color: var(--blue); }
+  .node-card.amber .node-title { color: var(--amber); }
+  .node-card.purple .node-title { color: var(--purple); }
+  .node-card.red .node-title { color: var(--red); }
+
+  .node-items { list-style: none; }
+  .node-items li {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 2px 0;
+    padding-left: 12px;
+    position: relative;
+  }
+  .node-items li::before { content: '─'; position: absolute; left: 0; color: var(--text-muted); }
+
+  /* ── DATA FLOW ── */
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .flow-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  .flow-arrow {
+    display: flex; align-items: center;
+    padding: 0 6px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 16px;
+  }
+  .flow-proto {
+    font-size: 9px;
+    color: var(--green);
+    display: block;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── BOM TABLE ── */
+  .bom-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .bom-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border2);
+    background: var(--panel);
+  }
+  .bom-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+  }
+  .bom-table tr:hover td { background: var(--bg2); }
+  .bom-table .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .tag-g { background: rgba(45,255,114,0.1); color: var(--green); }
+  .tag-b { background: rgba(77,201,255,0.1); color: var(--blue); }
+  .tag-a { background: rgba(255,165,0,0.1); color: var(--amber); }
+  .tag-p { background: rgba(199,125,255,0.1); color: var(--purple); }
+  .tag-r { background: rgba(255,77,109,0.1); color: var(--red); }
+
+  /* ── PHASE ROADMAP ── */
+  .phases { display: grid; grid-template-columns: 1fr; gap: 0; }
+  .phase {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px dashed var(--border2);
+    position: relative;
+  }
+  .phase:last-child { border-bottom: none; }
+  .phase-num {
+    font-family: var(--mono);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--border2);
+    min-width: 48px;
+    line-height: 1;
+    padding-top: 2px;
+  }
+  .phase.active .phase-num { color: var(--green); }
+  .phase.p2 .phase-num { color: var(--blue); }
+  .phase.p3 .phase-num { color: var(--amber); }
+  .phase.p4 .phase-num { color: var(--purple); }
+  .phase-content { flex: 1; }
+  .phase-title {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .phase-period {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    letter-spacing: 0.1em;
+  }
+  .phase-items { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  .phase-items li {
+    font-size: 11px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 3px 8px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+
+  /* ── SW STACK ── */
+  .sw-cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .sw-group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .sw-group-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sw-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .sw-name { font-size: 12px; color: var(--text); }
+  .sw-role { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
+
+  /* ── CALLOUT ── */
+  .callout {
+    background: var(--green-glow);
+    border: 1px solid var(--green-dim);
+    border-left: 3px solid var(--green);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .callout strong { color: var(--green); font-family: var(--mono); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    margin-top: 60px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* ── NETWORK TOPOLOGY SVG ── */
+  .topo-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  @media (max-width: 600px) {
+    .flow-row { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+    .meta { flex-direction: column; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="badge">SYSTEM ARCHITECTURE BLUEPRINT v1.0</div>
+    <h1>Smart <span>Longan Farm</span><br>Automation System</h1>
+    <div class="meta">
+      <span>Area: 3 Rai (~4,800 m²)</span>
+      <span>Stack: Raspberry Pi + ESP32</span>
+      <span>Cloud: Cloudflare</span>
+      <span>Pattern: Modular Edge-to-Cloud</span>
+    </div>
+  </header>
+
+  <!-- SECTION 1: ARCHITECTURE DIAGRAM -->
+  <section class="section">
+    <div class="sec-label">01</div>
+    <h2>System Architecture — 4-Layer Model</h2>
+
+    <div class="arch-diagram">
+      <svg viewBox="0 0 1060 560" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#2dff72" opacity="0.6"/>
+          </marker>
+          <marker id="arrb" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#4dc9ff" opacity="0.6"/>
+          </marker>
+          <marker id="arra" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L8,3 z" fill="#ffa500" opacity="0.6"/>
+          </marker>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <rect width="1060" height="560" fill="#0d1a10"/>
+
+        <!-- Layer bands -->
+        <rect x="0" y="10" width="1060" height="110" fill="rgba(45,255,114,0.04)" rx="4"/>
+        <rect x="0" y="130" width="1060" height="100" fill="rgba(77,201,255,0.04)" rx="4"/>
+        <rect x="0" y="240" width="1060" height="100" fill="rgba(255,165,0,0.04)" rx="4"/>
+        <rect x="0" y="350" width="1060" height="190" fill="rgba(199,125,255,0.04)" rx="4"/>
+
+        <!-- Layer Labels -->
+        <text x="16" y="32" fill="#2dff72" font-size="9" letter-spacing="2" opacity="0.8">LAYER 1 — FIELD / EDGE</text>
+        <text x="16" y="150" fill="#4dc9ff" font-size="9" letter-spacing="2" opacity="0.8">LAYER 2 — GATEWAY (LOCAL HUB)</text>
+        <text x="16" y="260" fill="#ffa500" font-size="9" letter-spacing="2" opacity="0.8">LAYER 3 — CONNECTIVITY</text>
+        <text x="16" y="370" fill="#c77dff" font-size="9" letter-spacing="2" opacity="0.8">LAYER 4 — CLOUD / APPLICATION</text>
+
+        <!-- ── LAYER 1 NODES ── -->
+        <!-- Sensor Node A x3 -->
+        <g transform="translate(40,45)">
+          <rect width="110" height="64" rx="5" fill="#111f14" stroke="#1e6e30" stroke-width="1"/>
+          <text x="55" y="16" text-anchor="middle" fill="#2dff72" font-size="9" font-weight="600">ESP32 NODE-S</text>
+          <text x="55" y="28" text-anchor="middle" fill="#5a8060" font-size="8">Soil Sensor Node</text>
+          <text x="10" y="42" fill="#3a5540" font-size="8">▸ Moisture (SoilWatch)</text>
+          <text x="10" y="54" fill="#3a5540" font-size="8">▸ Temp / EC / pH</text>
+        </g>
+        <g transform="translate(40,45)">
+          <text x="162" y="16" fill="#2dff72" font-size="8" opacity="0.5">×3 units</text>
+        </g>
+
+        <!-- Weather Node -->
+        <g transform="translate(200,45)">
+          <rect width="110" height="64" rx="5" fill="#111f14" stroke="#1e6e30" stroke-width="1"/>
+          <text x="55" y="16" text-anchor="middle" fill="#2dff72" font-size="9" font-weight="600">ESP32 NODE-W</text>
+          <text x="55" y="28" text-anchor="middle" fill="#5a8060" font-size="8">Weather Station</text>
+          <text x="10" y="42" fill="#3a5540" font-size="8">▸ Temp/Humidity (DHT22)</text>
+          <text x="10" y="54" fill="#3a5540" font-size="8">▸ Rain / LDR / Wind</text>
+        </g>
+
+        <!-- Pump Control Node -->
+        <g transform="translate(360,45)">
+          <rect width="120" height="64" rx="5" fill="#111f14" stroke="#1e6e30" stroke-width="1"/>
+          <text x="60" y="16" text-anchor="middle" fill="#2dff72" font-size="9" font-weight="600">ESP32 NODE-P</text>
+          <text x="60" y="28" text-anchor="middle" fill="#5a8060" font-size="8">Pump Controller</text>
+          <text x="10" y="42" fill="#3a5540" font-size="8">▸ Relay (pump on/off)</text>
+          <text x="10" y="54" fill="#3a5540" font-size="8">▸ Flow Meter / Pressure</text>
+        </g>
+
+        <!-- Drip Zone Valve -->
+        <g transform="translate(530,45)">
+          <rect width="110" height="64" rx="5" fill="#111f14" stroke="#1e6e30" stroke-width="1"/>
+          <text x="55" y="16" text-anchor="middle" fill="#2dff72" font-size="9" font-weight="600">ESP32 NODE-V</text>
+          <text x="55" y="28" text-anchor="middle" fill="#5a8060" font-size="8">Zone Valve Node</text>
+          <text x="10" y="42" fill="#3a5540" font-size="8">▸ Solenoid Valves ×4</text>
+          <text x="10" y="54" fill="#3a5540" font-size="8">▸ Zone drip control</text>
+        </g>
+
+        <!-- Camera nodes -->
+        <g transform="translate(700,45)">
+          <rect width="110" height="64" rx="5" fill="#111f14" stroke="#1a3540" stroke-width="1"/>
+          <text x="55" y="16" text-anchor="middle" fill="#4dc9ff" font-size="9" font-weight="600">IP CAMERA</text>
+          <text x="55" y="28" text-anchor="middle" fill="#3a6070" font-size="8">×3–4 units</text>
+          <text x="10" y="42" fill="#2a4550" font-size="8">▸ RTSP stream</text>
+          <text x="10" y="54" fill="#2a4550" font-size="8">▸ WiFi / PoE</text>
+        </g>
+
+        <!-- Water pump symbol -->
+        <g transform="translate(870,45)">
+          <rect width="110" height="64" rx="5" fill="#111f14" stroke="#3a3010" stroke-width="1"/>
+          <text x="55" y="16" text-anchor="middle" fill="#ffa500" font-size="9" font-weight="600">SUBMERSIBLE</text>
+          <text x="55" y="28" text-anchor="middle" fill="#705020" font-size="8">PUMP (บาดาล)</text>
+          <text x="10" y="42" fill="#504020" font-size="8">▸ 3-Phase / Single Phase</text>
+          <text x="10" y="54" fill="#504020" font-size="8">▸ Controlled via NODE-P</text>
+        </g>
+
+        <!-- ARROWS L1 → L2 -->
+        <line x1="95" y1="109" x2="490" y2="145" stroke="#2dff72" stroke-width="1" opacity="0.3" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+        <line x1="255" y1="109" x2="500" y2="145" stroke="#2dff72" stroke-width="1" opacity="0.3" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+        <line x1="420" y1="109" x2="510" y2="145" stroke="#2dff72" stroke-width="1" opacity="0.3" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+        <line x1="585" y1="109" x2="520" y2="145" stroke="#2dff72" stroke-width="1" opacity="0.3" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+        <line x1="755" y1="109" x2="530" y2="145" stroke="#4dc9ff" stroke-width="1" opacity="0.3" marker-end="url(#arrb)" stroke-dasharray="4,3"/>
+
+        <!-- LAYER 2: Raspberry Pi Hub -->
+        <g transform="translate(350,145)">
+          <rect width="280" height="80" rx="6" fill="#0d2218" stroke="#2a7a50" stroke-width="1.5"/>
+          <text x="140" y="18" text-anchor="middle" fill="#2dff72" font-size="10" font-weight="700" filter="url(#glow)">RASPBERRY PI 4 — LOCAL GATEWAY</text>
+          <text x="14" y="36" fill="#4a8060" font-size="8">▸ MQTT Broker (Mosquitto)</text>
+          <text x="14" y="48" fill="#4a8060" font-size="8">▸ Node-RED (automation logic)</text>
+          <text x="154" y="36" fill="#4a8060" font-size="8">▸ TimescaleDB / SQLite</text>
+          <text x="154" y="48" fill="#4a8060" font-size="8">▸ Edge AI (TFLite)</text>
+          <text x="14" y="64" fill="#4a8060" font-size="8">▸ Frigate NVR (cameras)</text>
+          <text x="154" y="64" fill="#4a8060" font-size="8">▸ Cloudflare Tunnel daemon</text>
+        </g>
+
+        <!-- WiFi AP -->
+        <g transform="translate(700,155)">
+          <rect width="100" height="60" rx="5" fill="#0d1820" stroke="#1a3050" stroke-width="1"/>
+          <text x="50" y="16" text-anchor="middle" fill="#4dc9ff" font-size="9" font-weight="600">WiFi AP</text>
+          <text x="50" y="28" text-anchor="middle" fill="#2a4560" font-size="8">TP-Link Outdoor</text>
+          <text x="10" y="44" fill="#203040" font-size="8">▸ ESP32 mesh</text>
+          <text x="10" y="54" fill="#203040" font-size="8">▸ Camera uplink</text>
+        </g>
+
+        <!-- L2 → L3 arrow -->
+        <line x1="490" y1="225" x2="490" y2="250" stroke="#ffa500" stroke-width="1.5" opacity="0.5" marker-end="url(#arra)"/>
+
+        <!-- LAYER 3: Connectivity -->
+        <g transform="translate(320,250)">
+          <rect width="160" height="70" rx="5" fill="#111508" stroke="#3a3010" stroke-width="1"/>
+          <text x="80" y="18" text-anchor="middle" fill="#ffa500" font-size="9" font-weight="600">4G/LTE Router</text>
+          <text x="80" y="30" text-anchor="middle" fill="#605020" font-size="8">(Backup WAN)</text>
+          <text x="10" y="46" fill="#403510" font-size="8">▸ Primary: FTTH/Fixed BB</text>
+          <text x="10" y="58" fill="#403510" font-size="8">▸ Failover: SIM routing</text>
+        </g>
+
+        <g transform="translate(530,250)">
+          <rect width="160" height="70" rx="5" fill="#0d1520" stroke="#1a3050" stroke-width="1"/>
+          <text x="80" y="18" text-anchor="middle" fill="#4dc9ff" font-size="9" font-weight="600">Cloudflare Tunnel</text>
+          <text x="80" y="30" text-anchor="middle" fill="#2a4060" font-size="8">cloudflared daemon</text>
+          <text x="10" y="46" fill="#1a3040" font-size="8">▸ Zero-Trust ingress</text>
+          <text x="10" y="58" fill="#1a3040" font-size="8">▸ No public IP needed</text>
+        </g>
+
+        <!-- L3 → L4 -->
+        <line x1="610" y1="320" x2="610" y2="355" stroke="#c77dff" stroke-width="1.5" opacity="0.5" marker-end="url(#arr)"/>
+
+        <!-- LAYER 4: Cloud boxes -->
+        <g transform="translate(30,360)">
+          <rect width="130" height="66" rx="5" fill="#150d20" stroke="#3a1a60" stroke-width="1"/>
+          <text x="65" y="16" text-anchor="middle" fill="#c77dff" font-size="9" font-weight="600">CF Workers</text>
+          <text x="65" y="28" text-anchor="middle" fill="#502a80" font-size="8">REST API / WS</text>
+          <text x="10" y="44" fill="#3a1a50" font-size="8">▸ Auth + Rate limit</text>
+          <text x="10" y="56" fill="#3a1a50" font-size="8">▸ Data ingestion</text>
+        </g>
+
+        <g transform="translate(185,360)">
+          <rect width="130" height="66" rx="5" fill="#150d20" stroke="#3a1a60" stroke-width="1"/>
+          <text x="65" y="16" text-anchor="middle" fill="#c77dff" font-size="9" font-weight="600">CF D1 / KV</text>
+          <text x="65" y="28" text-anchor="middle" fill="#502a80" font-size="8">SQL Database</text>
+          <text x="10" y="44" fill="#3a1a50" font-size="8">▸ Sensor history</text>
+          <text x="10" y="56" fill="#3a1a50" font-size="8">▸ Config / rules</text>
+        </g>
+
+        <g transform="translate(340,360)">
+          <rect width="130" height="66" rx="5" fill="#150d20" stroke="#3a1a60" stroke-width="1"/>
+          <text x="65" y="16" text-anchor="middle" fill="#c77dff" font-size="9" font-weight="600">CF R2</text>
+          <text x="65" y="28" text-anchor="middle" fill="#502a80" font-size="8">Object Storage</text>
+          <text x="10" y="44" fill="#3a1a50" font-size="8">▸ Camera snapshots</text>
+          <text x="10" y="56" fill="#3a1a50" font-size="8">▸ ML model store</text>
+        </g>
+
+        <g transform="translate(495,360)">
+          <rect width="130" height="66" rx="5" fill="#150d20" stroke="#3a1a60" stroke-width="1"/>
+          <text x="65" y="16" text-anchor="middle" fill="#c77dff" font-size="9" font-weight="600">CF Pages</text>
+          <text x="65" y="28" text-anchor="middle" fill="#502a80" font-size="8">Dashboard UI</text>
+          <text x="10" y="44" fill="#3a1a50" font-size="8">▸ React + Recharts</text>
+          <text x="10" y="56" fill="#3a1a50" font-size="8">▸ Live sensor view</text>
+        </g>
+
+        <g transform="translate(650,360)">
+          <rect width="130" height="66" rx="5" fill="#150d20" stroke="#3a1a60" stroke-width="1"/>
+          <text x="65" y="16" text-anchor="middle" fill="#c77dff" font-size="9" font-weight="600">CF Stream</text>
+          <text x="65" y="28" text-anchor="middle" fill="#502a80" font-size="8">Video Streaming</text>
+          <text x="10" y="44" fill="#3a1a50" font-size="8">▸ Camera live feed</text>
+          <text x="10" y="56" fill="#3a1a50" font-size="8">▸ HLS player</text>
+        </g>
+
+        <g transform="translate(805,360)">
+          <rect width="130" height="66" rx="5" fill="#150d20" stroke="#3a1a60" stroke-width="1"/>
+          <text x="65" y="16" text-anchor="middle" fill="#c77dff" font-size="9" font-weight="600">CF AI / Python</text>
+          <text x="65" y="28" text-anchor="middle" fill="#502a80" font-size="8">ML Pipeline</text>
+          <text x="10" y="44" fill="#3a1a50" font-size="8">▸ Anomaly detect</text>
+          <text x="10" y="56" fill="#3a1a50" font-size="8">▸ Predict irrigation</text>
+        </g>
+
+        <!-- CF Boxes bottom row: Mobile/LINE -->
+        <g transform="translate(250,450)">
+          <rect width="200" height="50" rx="5" fill="#0d150d" stroke="#1e3322" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="100" y="18" text-anchor="middle" fill="#5a8060" font-size="9" font-weight="600">LINE Notify / Alert</text>
+          <text x="100" y="32" text-anchor="middle" fill="#3a5040" font-size="8">Push notification → phone</text>
+        </g>
+        <g transform="translate(600,450)">
+          <rect width="200" height="50" rx="5" fill="#0d150d" stroke="#1e3322" stroke-width="1" stroke-dasharray="4,3"/>
+          <text x="100" y="18" text-anchor="middle" fill="#5a8060" font-size="9" font-weight="600">Mobile App (PWA)</text>
+          <text x="100" y="32" text-anchor="middle" fill="#3a5040" font-size="8">Remote pump control via HTTPS</text>
+        </g>
+
+        <!-- protocol labels -->
+        <text x="480" y="140" fill="#2dff72" font-size="8" opacity="0.6">MQTT/WiFi</text>
+        <text x="488" y="240" fill="#ffa500" font-size="8" opacity="0.6">HTTPS/WSS</text>
+        <text x="598" y="348" fill="#c77dff" font-size="8" opacity="0.6">Tunnel</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- SECTION 2: LAYERS DETAIL -->
+  <section class="section">
+    <div class="sec-label">02</div>
+    <h2>Layer Detail — Components & Responsibilities</h2>
+    <div class="layers">
+
+      <div class="layer l1">
+        <div class="layer-header"><span class="num">1</span>FIELD EDGE LAYER — ESP32 Sensor & Actuator Nodes</div>
+        <div class="layer-body">
+          <div class="node-grid">
+            <div class="node-card green">
+              <div class="node-title">NODE-S: Soil Sensor ×3</div>
+              <ul class="node-items">
+                <li>ESP32 (WROOM-32)</li>
+                <li>Capacitive Soil Moisture</li>
+                <li>DS18B20 Soil Temp</li>
+                <li>EC Sensor (optional)</li>
+                <li>Solar panel + LiPo</li>
+                <li>MQTT publish ทุก 5 นาที</li>
+              </ul>
+            </div>
+            <div class="node-card green">
+              <div class="node-title">NODE-W: Weather Station ×1</div>
+              <ul class="node-items">
+                <li>ESP32 DevKit</li>
+                <li>DHT22 / SHT31 Temp+RH</li>
+                <li>Rain Gauge (tipping)</li>
+                <li>BH1750 Light Sensor</li>
+                <li>Anemometer (wind)</li>
+                <li>ติดตั้งศูนย์กลางสวน</li>
+              </ul>
+            </div>
+            <div class="node-card amber">
+              <div class="node-title">NODE-P: Pump Controller ×1</div>
+              <ul class="node-items">
+                <li>ESP32 + SSR Relay Module</li>
+                <li>ควบคุมปั๊มบาดาล</li>
+                <li>YF-S201 Flow Meter</li>
+                <li>Pressure sensor</li>
+                <li>Manual override switch</li>
+                <li>Alert เมื่อ flow ผิดปกติ</li>
+              </ul>
+            </div>
+            <div class="node-card blue">
+              <div class="node-title">NODE-V: Zone Valves ×1</div>
+              <ul class="node-items">
+                <li>ESP32 + 4-ch Relay</li>
+                <li>Solenoid valve 12V ×4</li>
+                <li>แบ่งโซนน้ำหยด 4 โซน</li>
+                <li>รับ CMD จาก RPi</li>
+                <li>Report status ทุก cycle</li>
+              </ul>
+            </div>
+            <div class="node-card blue">
+              <div class="node-title">IP Camera ×3–4</div>
+              <ul class="node-items">
+                <li>Reolink/Dahua 2MP+</li>
+                <li>RTSP stream → RPi</li>
+                <li>Night vision IR</li>
+                <li>กระจาย: ทางเข้า, กลางสวน, แปลงต้น</li>
+              </ul>
+            </div>
+            <div class="node-card red">
+              <div class="node-title">Drip Irrigation System</div>
+              <ul class="node-items">
+                <li>เมนท่อ PE 32mm</li>
+                <li>หัวน้ำหยด 2 L/hr ทุกต้น</li>
+                <li>Filter + Pressure Reg</li>
+                <li>แบ่ง 4 โซน (ควบคุม NODE-V)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer l2">
+        <div class="layer-header"><span class="num">2</span>GATEWAY LAYER — Raspberry Pi Local Hub</div>
+        <div class="layer-body">
+          <div class="node-grid">
+            <div class="node-card blue">
+              <div class="node-title">Raspberry Pi 4 (4GB)</div>
+              <ul class="node-items">
+                <li>Ubuntu Server 22.04</li>
+                <li>SSD 128GB (USB3)</li>
+                <li>UPS HAT (backup power)</li>
+                <li>ติดตั้งในกล่องกันน้ำ + พัดลม</li>
+              </ul>
+            </div>
+            <div class="node-card blue">
+              <div class="node-title">Mosquitto MQTT Broker</div>
+              <ul class="node-items">
+                <li>รับข้อมูลจาก ESP32 ทุก node</li>
+                <li>QoS 1 — guaranteed delivery</li>
+                <li>Topic structure: farm/+/+</li>
+                <li>TLS auth (username/pass)</li>
+              </ul>
+            </div>
+            <div class="node-card blue">
+              <div class="node-title">Node-RED Engine</div>
+              <ul class="node-items">
+                <li>Automation rule engine</li>
+                <li>Flow: sensor → logic → action</li>
+                <li>เปิด/ปิดปั๊มตามเงื่อนไข</li>
+                <li>Schedule + threshold trigger</li>
+              </ul>
+            </div>
+            <div class="node-card blue">
+              <div class="node-title">TimescaleDB (PostgreSQL)</div>
+              <ul class="node-items">
+                <li>Time-series sensor data</li>
+                <li>Local 30-day buffer</li>
+                <li>Sync ขึ้น CF D1 ทุกชั่วโมง</li>
+                <li>AI feature pipeline source</li>
+              </ul>
+            </div>
+            <div class="node-card blue">
+              <div class="node-title">Frigate NVR</div>
+              <ul class="node-items">
+                <li>RTSP → H.264 record</li>
+                <li>Object detection (YOLO)</li>
+                <li>Motion alert → LINE</li>
+                <li>Snapshot → CF R2</li>
+              </ul>
+            </div>
+            <div class="node-card blue">
+              <div class="node-title">Cloudflare Tunnel</div>
+              <ul class="node-items">
+                <li>cloudflared service</li>
+                <li>Expose API → internet</li>
+                <li>ไม่ต้องมี Public IP</li>
+                <li>Zero-Trust access control</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer l3">
+        <div class="layer-header"><span class="num">3</span>CONNECTIVITY LAYER — Network & Protocols</div>
+        <div class="layer-body">
+          <div class="node-grid">
+            <div class="node-card amber">
+              <div class="node-title">WiFi Network</div>
+              <ul class="node-items">
+                <li>AP: TP-Link EAP (Outdoor)</li>
+                <li>SSID เฉพาะระบบ farm</li>
+                <li>ESP32 + Camera connect</li>
+                <li>2.4GHz range ครอบ 3 ไร่</li>
+              </ul>
+            </div>
+            <div class="node-card amber">
+              <div class="node-title">Internet (WAN)</div>
+              <ul class="node-items">
+                <li>Primary: FTTH / Fixed BB</li>
+                <li>Backup: 4G LTE Router</li>
+                <li>Failover auto-switch</li>
+                <li>VPN fallback option</li>
+              </ul>
+            </div>
+            <div class="node-card amber">
+              <div class="node-title">Protocols Used</div>
+              <ul class="node-items">
+                <li>MQTT → sensor telemetry</li>
+                <li>HTTP/WS → dashboard</li>
+                <li>RTSP → camera stream</li>
+                <li>HTTPS → cloud API</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layer l4">
+        <div class="layer-header"><span class="num">4</span>CLOUD / APPLICATION LAYER — Cloudflare Stack</div>
+        <div class="layer-body">
+          <div class="node-grid">
+            <div class="node-card purple">
+              <div class="node-title">CF Workers (API)</div>
+              <ul class="node-items">
+                <li>REST endpoints</li>
+                <li>WebSocket realtime</li>
+                <li>Auth (JWT/API Key)</li>
+                <li>Rate limiting</li>
+              </ul>
+            </div>
+            <div class="node-card purple">
+              <div class="node-title">CF D1 (Database)</div>
+              <ul class="node-items">
+                <li>SQLite edge DB</li>
+                <li>Sensor history</li>
+                <li>Automation rules</li>
+                <li>Alert config</li>
+              </ul>
+            </div>
+            <div class="node-card purple">
+              <div class="node-title">CF R2 (Storage)</div>
+              <ul class="node-items">
+                <li>Camera snapshots</li>
+                <li>ML model artifacts</li>
+                <li>Log archives</li>
+                <li>0 egress cost</li>
+              </ul>
+            </div>
+            <div class="node-card purple">
+              <div class="node-title">CF Pages (Dashboard)</div>
+              <ul class="node-items">
+                <li>React SPA</li>
+                <li>Recharts sensor graphs</li>
+                <li>Pump control button</li>
+                <li>Camera viewer (HLS)</li>
+              </ul>
+            </div>
+            <div class="node-card purple">
+              <div class="node-title">CF Stream</div>
+              <ul class="node-items">
+                <li>Live camera HLS</li>
+                <li>Recording storage</li>
+                <li>Playback on dashboard</li>
+              </ul>
+            </div>
+            <div class="node-card purple">
+              <div class="node-title">Alert System</div>
+              <ul class="node-items">
+                <li>LINE Notify / OA</li>
+                <li>แจ้งเตือน soil dry</li>
+                <li>ปั๊มผิดปกติ</li>
+                <li>Motion detected</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 3: DATA FLOW -->
+  <section class="section">
+    <div class="sec-label">03</div>
+    <h2>Data Flow — Sensor to Dashboard</h2>
+
+    <div style="background:var(--panel);border:1px solid var(--border2);border-radius:6px;padding:20px;">
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.1em;">TELEMETRY PATH</div>
+        <div class="flow-row">
+          <div class="flow-block" style="border-color:#1e6e30;color:#2dff72;">ESP32 Sensor<span class="flow-proto">read every 5min</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1e6e30;color:#2dff72;">MQTT Publish<span class="flow-proto">farm/soil/node1</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1a3050;color:#4dc9ff;">Mosquitto<span class="flow-proto">RPi Broker</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1a3050;color:#4dc9ff;">Node-RED<span class="flow-proto">process + route</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1a3050;color:#4dc9ff;">TimescaleDB<span class="flow-proto">local store</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#3a1a60;color:#c77dff;">CF Worker<span class="flow-proto">HTTPS POST</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#3a1a60;color:#c77dff;">CF D1 DB<span class="flow-proto">persist</span></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.1em;">CONTROL PATH (REMOTE PUMP)</div>
+        <div class="flow-row">
+          <div class="flow-block" style="border-color:#3a1a60;color:#c77dff;">Dashboard UI<span class="flow-proto">User clicks</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#3a1a60;color:#c77dff;">CF Worker API<span class="flow-proto">Auth check</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1a3050;color:#4dc9ff;">CF Tunnel<span class="flow-proto">encrypted</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1a3050;color:#4dc9ff;">RPi Node-RED<span class="flow-proto">receive cmd</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1e6e30;color:#2dff72;">MQTT CMD<span class="flow-proto">farm/pump/cmd</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1e6e30;color:#2dff72;">ESP32 NODE-P<span class="flow-proto">relay ON/OFF</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#3a3010;color:#ffa500;">Submersible Pump<span class="flow-proto">water flows</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.1em;">AUTOMATION PATH (AUTO-IRRIGATION)</div>
+        <div class="flow-row">
+          <div class="flow-block" style="border-color:#1e6e30;color:#2dff72;">Soil Moisture &lt; threshold<span class="flow-proto">MQTT event</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1a3050;color:#4dc9ff;">Node-RED Rule<span class="flow-proto">if-soil-dry</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1e6e30;color:#2dff72;">Open Valve Zone X<span class="flow-proto">MQTT CMD</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#3a3010;color:#ffa500;">Pump ON + Timer<span class="flow-proto">xx minutes</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#1a3050;color:#4dc9ff;">Log event to DB<span class="flow-proto">irrigation record</span></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-block" style="border-color:#3a1a60;color:#c77dff;">LINE Notify<span class="flow-proto">แจ้งเตือน</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: MQTT TOPIC STRUCTURE -->
+  <section class="section">
+    <div class="sec-label">04</div>
+    <h2>MQTT Topic Schema — Modular Design</h2>
+    <div style="background:var(--panel);border:1px solid var(--border2);border-radius:6px;padding:20px;overflow-x:auto;">
+      <table class="bom-table" style="min-width:600px;">
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Publisher</th>
+            <th>Subscriber</th>
+            <th>Payload</th>
+            <th>QoS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code style="color:#2dff72;font-family:var(--mono);font-size:11px;">farm/soil/{node_id}/data</code></td>
+            <td>ESP32 NODE-S</td>
+            <td>Node-RED, DB</td>
+            <td>JSON {moisture, temp, ec}</td>
+            <td><span class="tag tag-g">1</span></td>
+          </tr>
+          <tr>
+            <td><code style="color:#2dff72;font-family:var(--mono);font-size:11px;">farm/weather/data</code></td>
+            <td>ESP32 NODE-W</td>
+            <td>Node-RED, DB</td>
+            <td>JSON {temp, rh, rain, light}</td>
+            <td><span class="tag tag-g">1</span></td>
+          </tr>
+          <tr>
+            <td><code style="color:#ffa500;font-family:var(--mono);font-size:11px;">farm/pump/cmd</code></td>
+            <td>Node-RED / Cloud</td>
+            <td>ESP32 NODE-P</td>
+            <td>JSON {action: "on"|"off"}</td>
+            <td><span class="tag tag-a">2</span></td>
+          </tr>
+          <tr>
+            <td><code style="color:#ffa500;font-family:var(--mono);font-size:11px;">farm/pump/status</code></td>
+            <td>ESP32 NODE-P</td>
+            <td>Node-RED, Cloud</td>
+            <td>JSON {state, flow_lph}</td>
+            <td><span class="tag tag-g">1</span></td>
+          </tr>
+          <tr>
+            <td><code style="color:#4dc9ff;font-family:var(--mono);font-size:11px;">farm/valve/{zone}/cmd</code></td>
+            <td>Node-RED / Cloud</td>
+            <td>ESP32 NODE-V</td>
+            <td>JSON {action, duration_min}</td>
+            <td><span class="tag tag-a">2</span></td>
+          </tr>
+          <tr>
+            <td><code style="color:#4dc9ff;font-family:var(--mono);font-size:11px;">farm/valve/{zone}/status</code></td>
+            <td>ESP32 NODE-V</td>
+            <td>Node-RED, Cloud</td>
+            <td>JSON {open, elapsed_min}</td>
+            <td><span class="tag tag-g">1</span></td>
+          </tr>
+          <tr>
+            <td><code style="color:#c77dff;font-family:var(--mono);font-size:11px;">farm/alert/{type}</code></td>
+            <td>Node-RED</td>
+            <td>Cloud Worker</td>
+            <td>JSON {level, msg, timestamp}</td>
+            <td><span class="tag tag-a">2</span></td>
+          </tr>
+          <tr>
+            <td><code style="color:#5a8060;font-family:var(--mono);font-size:11px;">farm/{device}/heartbeat</code></td>
+            <td>All ESP32</td>
+            <td>Node-RED</td>
+            <td>JSON {uptime, rssi, vcc}</td>
+            <td><span class="tag tag-g">0</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 5: BOM -->
+  <section class="section">
+    <div class="sec-label">05</div>
+    <h2>Hardware BOM — Bill of Materials</h2>
+    <div style="overflow-x:auto;">
+      <table class="bom-table" style="min-width:700px;">
+        <thead>
+          <tr><th>#</th><th>Component</th><th>Model/Spec</th><th>Qty</th><th>Role</th><th>Category</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Raspberry Pi 4B</td><td>4GB RAM</td><td>1</td><td>Local Gateway Hub</td><td><span class="tag tag-b">GATEWAY</span></td></tr>
+          <tr><td>2</td><td>SSD USB 3.0</td><td>128GB</td><td>1</td><td>OS + Database storage</td><td><span class="tag tag-b">GATEWAY</span></td></tr>
+          <tr><td>3</td><td>UPS HAT / Mini UPS</td><td>RPi compatible</td><td>1</td><td>Power backup RPi</td><td><span class="tag tag-b">GATEWAY</span></td></tr>
+          <tr><td>4</td><td>ESP32 DevKit V1</td><td>WROOM-32</td><td>6</td><td>Sensor + control nodes</td><td><span class="tag tag-g">EDGE</span></td></tr>
+          <tr><td>5</td><td>Capacitive Soil Moisture</td><td>V1.2 (3.3V)</td><td>3</td><td>วัดความชื้นดิน</td><td><span class="tag tag-g">SENSOR</span></td></tr>
+          <tr><td>6</td><td>SHT31 / DHT22</td><td>Temp + Humidity</td><td>2</td><td>อากาศ + เก็บสำรอง</td><td><span class="tag tag-g">SENSOR</span></td></tr>
+          <tr><td>7</td><td>DS18B20</td><td>Waterproof probe</td><td>3</td><td>อุณหภูมิดิน</td><td><span class="tag tag-g">SENSOR</span></td></tr>
+          <tr><td>8</td><td>Tipping Rain Gauge</td><td>0.2mm/tip</td><td>1</td><td>วัดปริมาณฝน</td><td><span class="tag tag-g">SENSOR</span></td></tr>
+          <tr><td>9</td><td>BH1750 Light Sensor</td><td>I2C, lux</td><td>1</td><td>ความเข้มแสง</td><td><span class="tag tag-g">SENSOR</span></td></tr>
+          <tr><td>10</td><td>YF-S201 Flow Meter</td><td>1–30 L/min</td><td>1</td><td>วัดอัตราการไหล</td><td><span class="tag tag-g">SENSOR</span></td></tr>
+          <tr><td>11</td><td>SSR Relay Module</td><td>40A, 3-32V DC ctrl</td><td>1</td><td>สวิตช์ปั๊มน้ำ</td><td><span class="tag tag-a">ACTUATOR</span></td></tr>
+          <tr><td>12</td><td>Solenoid Valve</td><td>12V DC, 3/4"</td><td>4</td><td>วาล์วน้ำหยดแต่ละโซน</td><td><span class="tag tag-a">ACTUATOR</span></td></tr>
+          <tr><td>13</td><td>IP Camera</td><td>2MP, RTSP, IR</td><td>4</td><td>กล้องวงจรปิด</td><td><span class="tag tag-b">CAMERA</span></td></tr>
+          <tr><td>14</td><td>WiFi AP Outdoor</td><td>TP-Link EAP225-OD</td><td>2</td><td>ครอบ WiFi ทั้งสวน</td><td><span class="tag tag-b">NETWORK</span></td></tr>
+          <tr><td>15</td><td>4G LTE Router</td><td>SIM slot, failover</td><td>1</td><td>Backup internet</td><td><span class="tag tag-b">NETWORK</span></td></tr>
+          <tr><td>16</td><td>Solar Panel + Controller</td><td>20W + MPPT</td><td>3</td><td>จ่ายไฟ ESP32 field nodes</td><td><span class="tag tag-r">POWER</span></td></tr>
+          <tr><td>17</td><td>LiPo Battery 3.7V</td><td>5000–10000 mAh</td><td>3</td><td>สำรองไฟ field nodes</td><td><span class="tag tag-r">POWER</span></td></tr>
+          <tr><td>18</td><td>Submersible Pump</td><td>0.5–1HP (ตามความลึก)</td><td>1</td><td>สูบน้ำบาดาล</td><td><span class="tag tag-a">ACTUATOR</span></td></tr>
+          <tr><td>19</td><td>Drip Irrigation Kit</td><td>PE pipe + drippers 2L/hr</td><td>1 set</td><td>ระบบน้ำหยดทั้งสวน</td><td><span class="tag tag-a">IRRIGATION</span></td></tr>
+          <tr><td>20</td><td>Control Box Outdoor</td><td>IP65</td><td>2</td><td>กล่องติดตั้ง electronics</td><td><span class="tag tag-r">ENCLOSURE</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 6: SOFTWARE STACK -->
+  <section class="section">
+    <div class="sec-label">06</div>
+    <h2>Software Stack</h2>
+    <div class="sw-cols">
+      <div class="sw-group">
+        <div class="sw-group-title">ESP32 Firmware</div>
+        <div class="sw-item"><span class="sw-name">Arduino / ESP-IDF</span><span class="sw-role">Runtime</span></div>
+        <div class="sw-item"><span class="sw-name">PubSubClient</span><span class="sw-role">MQTT lib</span></div>
+        <div class="sw-item"><span class="sw-name">ArduinoJSON</span><span class="sw-role">Payload</span></div>
+        <div class="sw-item"><span class="sw-name">OTA Update</span><span class="sw-role">Remote flash</span></div>
+        <div class="sw-item"><span class="sw-name">Deep Sleep</span><span class="sw-role">Power save</span></div>
+      </div>
+      <div class="sw-group">
+        <div class="sw-group-title">Raspberry Pi OS</div>
+        <div class="sw-item"><span class="sw-name">Ubuntu Server 22.04</span><span class="sw-role">OS</span></div>
+        <div class="sw-item"><span class="sw-name">Docker Compose</span><span class="sw-role">Container mgmt</span></div>
+        <div class="sw-item"><span class="sw-name">Mosquitto</span><span class="sw-role">MQTT broker</span></div>
+        <div class="sw-item"><span class="sw-name">Node-RED</span><span class="sw-role">Automation</span></div>
+        <div class="sw-item"><span class="sw-name">TimescaleDB</span><span class="sw-role">Time-series DB</span></div>
+        <div class="sw-item"><span class="sw-name">Frigate NVR</span><span class="sw-role">Camera AI</span></div>
+        <div class="sw-item"><span class="sw-name">cloudflared</span><span class="sw-role">Tunnel daemon</span></div>
+      </div>
+      <div class="sw-group">
+        <div class="sw-group-title">Cloudflare Stack</div>
+        <div class="sw-item"><span class="sw-name">CF Workers</span><span class="sw-role">API / serverless</span></div>
+        <div class="sw-item"><span class="sw-name">CF D1</span><span class="sw-role">SQL database</span></div>
+        <div class="sw-item"><span class="sw-name">CF R2</span><span class="sw-role">Object storage</span></div>
+        <div class="sw-item"><span class="sw-name">CF Pages</span><span class="sw-role">Frontend hosting</span></div>
+        <div class="sw-item"><span class="sw-name">CF Stream</span><span class="sw-role">Video delivery</span></div>
+        <div class="sw-item"><span class="sw-name">CF Access</span><span class="sw-role">Zero-trust auth</span></div>
+      </div>
+      <div class="sw-group">
+        <div class="sw-group-title">Dashboard (Frontend)</div>
+        <div class="sw-item"><span class="sw-name">React + Vite</span><span class="sw-role">SPA framework</span></div>
+        <div class="sw-item"><span class="sw-name">Recharts</span><span class="sw-role">Sensor graphs</span></div>
+        <div class="sw-item"><span class="sw-name">Leaflet.js</span><span class="sw-role">Farm map</span></div>
+        <div class="sw-item"><span class="sw-name">WebSocket</span><span class="sw-role">Realtime data</span></div>
+        <div class="sw-item"><span class="sw-name">HLS.js</span><span class="sw-role">Camera player</span></div>
+      </div>
+      <div class="sw-group">
+        <div class="sw-group-title">AI/ML Pipeline (Phase 3+)</div>
+        <div class="sw-item"><span class="sw-name">Python 3.11</span><span class="sw-role">ML scripts</span></div>
+        <div class="sw-item"><span class="sw-name">TensorFlow Lite</span><span class="sw-role">Edge inference</span></div>
+        <div class="sw-item"><span class="sw-name">scikit-learn</span><span class="sw-role">Anomaly detect</span></div>
+        <div class="sw-item"><span class="sw-name">YOLOv8</span><span class="sw-role">Vision AI</span></div>
+        <div class="sw-item"><span class="sw-name">Pandas + Numpy</span><span class="sw-role">Feature eng.</span></div>
+      </div>
+      <div class="sw-group">
+        <div class="sw-group-title">DevOps / CI-CD</div>
+        <div class="sw-item"><span class="sw-name">Git + GitHub</span><span class="sw-role">Source control</span></div>
+        <div class="sw-item"><span class="sw-name">GitHub Actions</span><span class="sw-role">CI/CD pipeline</span></div>
+        <div class="sw-item"><span class="sw-name">Wrangler CLI</span><span class="sw-role">CF deploy</span></div>
+        <div class="sw-item"><span class="sw-name">Ansible</span><span class="sw-role">RPi config mgmt</span></div>
+        <div class="sw-item"><span class="sw-name">Grafana (local)</span><span class="sw-role">Dev monitoring</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: AI/ML ROADMAP -->
+  <section class="section">
+    <div class="sec-label">07</div>
+    <h2>AI/ML Scalability Roadmap</h2>
+    <div class="phases">
+      <div class="phase active">
+        <div class="phase-num">01</div>
+        <div class="phase-content">
+          <div class="phase-title">Rule-Based Automation (Foundation)</div>
+          <div class="phase-period">เดือน 1–3 — IMPLEMENT NOW</div>
+          <ul class="phase-items">
+            <li>Threshold-based irrigation</li>
+            <li>Schedule-based pump control</li>
+            <li>Sensor data logging</li>
+            <li>Dashboard + LINE Alert</li>
+            <li>Camera monitoring</li>
+            <li>Manual remote control</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase p2">
+        <div class="phase-num">02</div>
+        <div class="phase-content">
+          <div class="phase-title">Anomaly Detection & Smart Alerts</div>
+          <div class="phase-period">เดือน 4–6</div>
+          <ul class="phase-items">
+            <li>Statistical anomaly (Z-score)</li>
+            <li>Sensor drift detection</li>
+            <li>Irrigation efficiency score</li>
+            <li>Water usage analytics</li>
+            <li>Pump health monitoring</li>
+            <li>Automated reports</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase p3">
+        <div class="phase-num">03</div>
+        <div class="phase-content">
+          <div class="phase-title">Predictive Irrigation (ML Model)</div>
+          <div class="phase-period">เดือน 7–12</div>
+          <ul class="phase-items">
+            <li>Weather forecast integration</li>
+            <li>Soil moisture prediction</li>
+            <li>Optimal watering schedule ML</li>
+            <li>Evapotranspiration model</li>
+            <li>TFLite inference on RPi</li>
+            <li>A/B test vs rule-based</li>
+          </ul>
+        </div>
+      </div>
+      <div class="phase p4">
+        <div class="phase-num">04</div>
+        <div class="phase-content">
+          <div class="phase-title">Computer Vision & Advanced AI</div>
+          <div class="phase-period">ปีที่ 2+</div>
+          <ul class="phase-items">
+            <li>Disease/pest detection (YOLOv8)</li>
+            <li>Fruit maturity estimation</li>
+            <li>Canopy health index (NDVI proxy)</li>
+            <li>Yield prediction model</li>
+            <li>Multi-farm comparison</li>
+            <li>LLM farm advisor chatbot</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>KEY DESIGN PRINCIPLE:</strong> ระบบออกแบบแบบ Modular ตั้งแต่ต้น — MQTT topic schema, DB schema, และ API contract ถูกออกแบบให้รองรับการเพิ่ม ML inference layer โดยไม่ต้อง redesign ระบบเดิม เพียงเพิ่ม consumer service ใหม่ที่ subscribe MQTT / query TimescaleDB แล้ว publish prediction กลับมา
+    </div>
+  </section>
+
+  <!-- SECTION 8: IMPLEMENTATION PHASES -->
+  <section class="section">
+    <div class="sec-label">08</div>
+    <h2>Implementation Plan</h2>
+    <div style="overflow-x:auto;">
+      <table class="bom-table" style="min-width:600px;">
+        <thead>
+          <tr><th>Sprint</th><th>งาน</th><th>Output</th><th>Duration</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-g">S1</span></td>
+            <td>WiFi AP + Network Setup, RPi + Docker, Mosquitto broker</td>
+            <td>Network online, MQTT working</td>
+            <td>1 สัปดาห์</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-g">S2</span></td>
+            <td>Flash ESP32 Soil Nodes ×3, test MQTT publish</td>
+            <td>Sensor data ใน broker</td>
+            <td>1 สัปดาห์</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-g">S3</span></td>
+            <td>Weather Node + Pump Node + Valve Node</td>
+            <td>All nodes online</td>
+            <td>1 สัปดาห์</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-b">S4</span></td>
+            <td>Node-RED flows: automation rules, pump logic</td>
+            <td>Auto-irrigation working</td>
+            <td>1 สัปดาห์</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-b">S5</span></td>
+            <td>Camera setup + Frigate NVR + motion alerts</td>
+            <td>กล้องออนไลน์</td>
+            <td>1 สัปดาห์</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-p">S6</span></td>
+            <td>CF Workers API + D1 schema + data sync</td>
+            <td>Cloud API ready</td>
+            <td>1 สัปดาห์</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-p">S7</span></td>
+            <td>React Dashboard (CF Pages): graphs, camera, controls</td>
+            <td>Dashboard ใช้งานได้</td>
+            <td>2 สัปดาห์</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-p">S8</span></td>
+            <td>LINE Notify, alerts, PWA mobile, UAT ทดสอบ</td>
+            <td>System go-live ✓</td>
+            <td>1 สัปดาห์</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div>SMART LONGAN FARM — ARCHITECTURE BLUEPRINT v1.0</div>
+    <div>Stack: ESP32 + Raspberry Pi 4 + Cloudflare // Pattern: Modular Edge-to-Cloud</div>
+    <div>Generated for implementation reference</div>
+  </footer>
+
+</div>
+</body>
+</html>
